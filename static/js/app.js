@@ -10,6 +10,8 @@ class DoseCalculatorApp {
         this.loadSavedData();
         this.updateNuclideUI();
         this.calculate();
+        // 默认选择第二个标签页（分装与计算）
+        this.switchTab('tab2');
     }
 
     bindEvents() {
