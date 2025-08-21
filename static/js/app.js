@@ -45,7 +45,7 @@ class DoseCalculatorApp {
         // 清空剂量
         document.getElementById('clear-dose').addEventListener('click', () => {
             document.getElementById('desired-dose').value = '';
-            this.calculate();
+            this.clearResults();
         });
 
         // 计算按钮
@@ -135,6 +135,9 @@ class DoseCalculatorApp {
             if (data.desired_dose) document.getElementById('desired-dose').value = data.desired_dose;
             if (data.nuclide) this.currentNuclide = data.nuclide;
             
+            // 更新核素UI
+            this.updateNuclideUI();
+            
         } catch (error) {
             console.error('加载保存数据失败:', error);
         }
@@ -154,6 +157,12 @@ class DoseCalculatorApp {
                 init_volume: document.getElementById('init-volume').value,
                 desired_dose: document.getElementById('desired-dose').value
             };
+
+            // 如果目标剂量为空，不进行计算，直接清空结果显示
+            if (!formData.desired_dose || formData.desired_dose === '') {
+                this.clearResults();
+                return;
+            }
 
             const response = await fetch('/api/calculate', {
                 method: 'POST',
@@ -191,6 +200,16 @@ class DoseCalculatorApp {
 
         // 添加结果动画
         this.animateResults();
+    }
+
+    clearResults() {
+        // 清空主要结果
+        document.getElementById('required-volume').textContent = '0.000 mL';
+        
+        // 清空详细结果
+        document.getElementById('current-activity').textContent = '0.00 mCi';
+        document.getElementById('current-concentration').textContent = '0.000 mCi/mL';
+        document.getElementById('elapsed-time').textContent = '0.0 分钟';
     }
 
     animateResults() {

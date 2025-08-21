@@ -78,7 +78,21 @@ def calculate():
         target_time_str = data.get('target_time', '07:30')
         init_activity = float(data.get('init_activity', 0))
         init_volume = float(data.get('init_volume', 0))
-        desired_dose = float(data.get('desired_dose', 0))
+        desired_dose_str = data.get('desired_dose', '')
+        
+        # 如果目标剂量为空，返回默认结果
+        if not desired_dose_str or desired_dose_str == '':
+            return jsonify({
+                'success': True,
+                'result': {
+                    'current_activity': 0.0,
+                    'current_concentration': 0.0,
+                    'required_volume': 0.0,
+                    'elapsed_minutes': 0.0
+                }
+            })
+        
+        desired_dose = float(desired_dose_str)
         
         # 解析时间
         init_time = datetime.datetime.strptime(init_time_str, '%H:%M').time()
@@ -113,7 +127,7 @@ def calculate():
             'target_time': target_time_str,
             'init_activity': str(init_activity),
             'init_volume': str(init_volume),
-            'desired_dose': str(desired_dose)
+            'desired_dose': desired_dose_str
         })
         
         return jsonify({
