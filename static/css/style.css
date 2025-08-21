@@ -232,10 +232,11 @@ label {
 
 /* 快速时间按钮 */
 .quick-time-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 /* 按钮样式 */
@@ -286,8 +287,10 @@ label {
 .btn-quick {
     background: #E5F0FF;
     color: #007AFF;
-    padding: 8px 12px;
-    font-size: 0.8rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    min-width: 40px;
+    border-radius: 6px;
 }
 
 .btn-quick:hover {
@@ -393,7 +396,13 @@ label {
     }
     
     .quick-time-buttons {
-        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+    }
+    
+    .btn-quick {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        min-width: 50px;
     }
     
     .time-input-group,
