@@ -13,6 +13,13 @@ class DoseCalculatorApp {
     }
 
     bindEvents() {
+        // 标签页切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.switchTab(e.currentTarget.dataset.tab);
+            });
+        });
+
         // 核素选择
         document.querySelectorAll('.nuclide-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -52,6 +59,26 @@ class DoseCalculatorApp {
             document.getElementById(id).addEventListener('input', () => {
                 this.calculate();
             });
+        });
+    }
+
+    switchTab(tabId) {
+        // 更新标签页按钮状态
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.dataset.tab === tabId) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // 更新标签页内容
+        document.querySelectorAll('.tab-content').forEach(content => {
+            if (content.id === tabId) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
         });
     }
 
