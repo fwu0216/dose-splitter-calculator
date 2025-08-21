@@ -120,7 +120,7 @@ def calculate():
         # 计算所需体积
         required_volume = calculate_volume(desired_dose, current_concentration)
         
-        # 保存数据
+        # 保存数据（无论是否计算都保存）
         save_data({
             'nuclide': nuclide,
             'init_time': init_time_str,

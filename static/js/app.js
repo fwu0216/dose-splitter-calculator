@@ -2,14 +2,12 @@
 class DoseCalculatorApp {
     constructor() {
         this.currentNuclide = 'F18';
-        this.init();
     }
 
-    init() {
+    async init() {
         this.bindEvents();
-        this.loadSavedData();
+        await this.loadSavedData();
         this.updateNuclideUI();
-        this.calculate();
         // 默认选择第二个标签页（分装与计算）
         this.switchTab('tab2');
     }
@@ -27,6 +25,7 @@ class DoseCalculatorApp {
             btn.addEventListener('click', (e) => {
                 this.currentNuclide = e.currentTarget.dataset.nuclide;
                 this.updateNuclideUI();
+                this.saveCurrentData();
                 this.calculate();
             });
         });
@@ -55,10 +54,11 @@ class DoseCalculatorApp {
             this.calculate();
         });
 
-        // 输入变化时自动计算
+        // 输入变化时自动计算和保存
         const inputs = ['init-time', 'target-time', 'init-activity', 'init-volume', 'desired-dose'];
         inputs.forEach(id => {
             document.getElementById(id).addEventListener('input', () => {
+                this.saveCurrentData();
                 this.calculate();
             });
         });
@@ -99,6 +99,7 @@ class DoseCalculatorApp {
             const response = await fetch('/api/current-time');
             const data = await response.json();
             document.getElementById('init-time').value = data.current_time;
+            this.saveCurrentData();
             this.calculate();
         } catch (error) {
             console.error('获取当前时间失败:', error);
@@ -106,6 +107,7 @@ class DoseCalculatorApp {
             const now = new Date();
             const timeString = now.toTimeString().slice(0, 5);
             document.getElementById('init-time').value = timeString;
+            this.saveCurrentData();
             this.calculate();
         }
     }
@@ -121,6 +123,7 @@ class DoseCalculatorApp {
             
             const newTime = date.toTimeString().slice(0, 5);
             targetTimeInput.value = newTime;
+            this.saveCurrentData();
             this.calculate();
         }
     }
@@ -130,15 +133,21 @@ class DoseCalculatorApp {
             const response = await fetch('/api/saved-data');
             const data = await response.json();
             
+            // 恢复所有输入值
             if (data.init_time) document.getElementById('init-time').value = data.init_time;
             if (data.target_time) document.getElementById('target-time').value = data.target_time;
             if (data.init_activity) document.getElementById('init-activity').value = data.init_activity;
             if (data.init_volume) document.getElementById('init-volume').value = data.init_volume;
-            if (data.desired_dose) document.getElementById('desired-dose').value = data.desired_dose;
+            if (data.desired_dose !== undefined) document.getElementById('desired-dose').value = data.desired_dose;
             if (data.nuclide) this.currentNuclide = data.nuclide;
             
             // 更新核素UI
             this.updateNuclideUI();
+            
+            // 如果有数据，立即计算一次
+            if (data.init_time && data.target_time && data.init_activity && data.init_volume) {
+                this.calculate();
+            }
             
         } catch (error) {
             console.error('加载保存数据失败:', error);
@@ -214,6 +223,29 @@ class DoseCalculatorApp {
         document.getElementById('elapsed-time').textContent = '0.0 分钟';
     }
 
+    saveCurrentData() {
+        // 保存当前所有输入数据
+        const formData = {
+            nuclide: this.currentNuclide,
+            init_time: document.getElementById('init-time').value,
+            target_time: document.getElementById('target-time').value,
+            init_activity: document.getElementById('init-activity').value,
+            init_volume: document.getElementById('init-volume').value,
+            desired_dose: document.getElementById('desired-dose').value
+        };
+
+        // 发送保存请求
+        fetch('/api/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        }).catch(error => {
+            console.error('保存数据失败:', error);
+        });
+    }
+
     animateResults() {
         const resultElements = document.querySelectorAll('.result-value');
         resultElements.forEach(element => {
@@ -230,8 +262,9 @@ class DoseCalculatorApp {
 }
 
 // 页面加载完成后初始化应用
-document.addEventListener('DOMContentLoaded', () => {
-    new DoseCalculatorApp();
+document.addEventListener('DOMContentLoaded', async () => {
+    const app = new DoseCalculatorApp();
+    await app.init();
 });
 
 // 添加一些辅助函数
