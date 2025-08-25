@@ -4,9 +4,9 @@ class DoseCalculatorApp {
         this.currentNuclide = 'F18';
     }
 
-    async init() {
+    init() {
         this.bindEvents();
-        await this.loadSavedData();
+        this.loadSavedData();
         this.updateNuclideUI();
         // 默认选择第二个标签页（分装与计算）
         this.switchTab('tab2');
@@ -47,6 +47,11 @@ class DoseCalculatorApp {
         document.getElementById('clear-dose').addEventListener('click', () => {
             document.getElementById('desired-dose').value = '';
             this.clearResults();
+        });
+
+        // 清除保存数据
+        document.getElementById('clear-data-btn').addEventListener('click', () => {
+            this.clearSavedData();
         });
 
         // 计算按钮
@@ -128,27 +133,31 @@ class DoseCalculatorApp {
         }
     }
 
-    async loadSavedData() {
+    loadSavedData() {
         try {
-            const response = await fetch('/api/saved-data');
-            const data = await response.json();
-            
-            // 恢复所有输入值
-            if (data.init_time) document.getElementById('init-time').value = data.init_time;
-            if (data.target_time) document.getElementById('target-time').value = data.target_time;
-            if (data.init_activity) document.getElementById('init-activity').value = data.init_activity;
-            if (data.init_volume) document.getElementById('init-volume').value = data.init_volume;
-            if (data.desired_dose !== undefined) document.getElementById('desired-dose').value = data.desired_dose;
-            if (data.nuclide) this.currentNuclide = data.nuclide;
-            
-            // 更新核素UI
-            this.updateNuclideUI();
-            
-            // 如果有数据，立即计算一次
-            if (data.init_time && data.target_time && data.init_activity && data.init_volume) {
-                this.calculate();
+            // 从localStorage读取保存的数据
+            const savedData = localStorage.getItem('doseCalculatorData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                
+                // 恢复所有输入值
+                if (data.init_time) document.getElementById('init-time').value = data.init_time;
+                if (data.target_time) document.getElementById('target-time').value = data.target_time;
+                if (data.init_activity) document.getElementById('init-activity').value = data.init_activity;
+                if (data.init_volume) document.getElementById('init-volume').value = data.init_volume;
+                if (data.desired_dose !== undefined) document.getElementById('desired-dose').value = data.desired_dose;
+                if (data.nuclide) this.currentNuclide = data.nuclide;
+                
+                // 更新核素UI
+                this.updateNuclideUI();
+                
+                // 如果有数据，立即计算一次
+                if (data.init_time && data.target_time && data.init_activity && data.init_volume) {
+                    this.calculate();
+                }
+                
+                console.log('已从本地存储恢复数据');
             }
-            
         } catch (error) {
             console.error('加载保存数据失败:', error);
         }
@@ -224,7 +233,7 @@ class DoseCalculatorApp {
     }
 
     saveCurrentData() {
-        // 保存当前所有输入数据
+        // 保存当前所有输入数据到localStorage
         const formData = {
             nuclide: this.currentNuclide,
             init_time: document.getElementById('init-time').value,
@@ -234,16 +243,13 @@ class DoseCalculatorApp {
             desired_dose: document.getElementById('desired-dose').value
         };
 
-        // 发送保存请求
-        fetch('/api/calculate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
-        }).catch(error => {
-            console.error('保存数据失败:', error);
-        });
+        try {
+            // 保存到localStorage
+            localStorage.setItem('doseCalculatorData', JSON.stringify(formData));
+            console.log('数据已保存到本地存储');
+        } catch (error) {
+            console.error('保存数据到本地存储失败:', error);
+        }
     }
 
     animateResults() {
@@ -255,6 +261,30 @@ class DoseCalculatorApp {
         });
     }
 
+    clearSavedData() {
+        // 清除localStorage中的数据
+        if (confirm('确定要清除所有保存的数据吗？此操作不可恢复。')) {
+            localStorage.removeItem('doseCalculatorData');
+            
+            // 重置所有输入字段到默认值
+            document.getElementById('init-time').value = '07:00';
+            document.getElementById('target-time').value = '07:30';
+            document.getElementById('init-activity').value = '178.8';
+            document.getElementById('init-volume').value = '10';
+            document.getElementById('desired-dose').value = '';
+            
+            // 重置核素选择
+            this.currentNuclide = 'F18';
+            this.updateNuclideUI();
+            
+            // 清空计算结果
+            this.clearResults();
+            
+            console.log('已清除所有保存的数据');
+            alert('数据已清除');
+        }
+    }
+
     showError(message) {
         // 简单的错误提示
         alert(`计算错误: ${message}`);
@@ -262,9 +292,9 @@ class DoseCalculatorApp {
 }
 
 // 页面加载完成后初始化应用
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     const app = new DoseCalculatorApp();
-    await app.init();
+    app.init();
 });
 
 // 添加一些辅助函数

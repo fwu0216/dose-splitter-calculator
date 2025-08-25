@@ -306,6 +306,20 @@ label {
     margin: 20px 0;
 }
 
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.button-group .btn {
+    flex: 1;
+}
+
+.button-group .btn-calculate {
+    margin: 0;
+}
+
 /* 结果显示 */
 .result-display {
     text-align: center;

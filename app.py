@@ -21,8 +21,7 @@ NUCLIDE_NAMES = {
     'C11': 'C-11 (Choline)'
 }
 
-# 数据文件路径
-DATA_FILE = 'saved_data.json'
+# 数据保存功能已迁移到客户端localStorage
 
 def decay_activity(initial_activity, elapsed_minutes, half_life):
     """计算放射性衰变后的活度"""
@@ -36,25 +35,7 @@ def calculate_volume(dose, concentration):
     """计算所需体积"""
     return dose / concentration if concentration else 0
 
-def save_data(data):
-    """保存数据到JSON文件"""
-    try:
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        print(f"保存数据失败: {e}")
-        return False
-
-def load_data():
-    """从JSON文件加载数据"""
-    try:
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"加载数据失败: {e}")
-    return {}
+# 数据保存功能已迁移到客户端localStorage，不再需要服务器端保存
 
 def get_current_time_cn():
     """获取东八区当前时间"""
@@ -120,15 +101,7 @@ def calculate():
         # 计算所需体积
         required_volume = calculate_volume(desired_dose, current_concentration)
         
-        # 保存数据（无论是否计算都保存）
-        save_data({
-            'nuclide': nuclide,
-            'init_time': init_time_str,
-            'target_time': target_time_str,
-            'init_activity': str(init_activity),
-            'init_volume': str(init_volume),
-            'desired_dose': desired_dose_str
-        })
+        # 数据现在保存在客户端localStorage中，不再需要服务器端保存
         
         return jsonify({
             'success': True,
@@ -155,10 +128,7 @@ def get_current_time():
         'timezone': 'Asia/Shanghai'
     })
 
-@app.route('/api/saved-data', methods=['GET'])
-def get_saved_data():
-    """获取保存的数据"""
-    return jsonify(load_data())
+# 数据保存功能已迁移到客户端localStorage，不再需要此API端点
 
 @app.route('/api/nuclides', methods=['GET'])
 def get_nuclides():
